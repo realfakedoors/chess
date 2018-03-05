@@ -3,9 +3,9 @@ class Board
   def initialize(board = self.empty_board)
     @board = board
     @white_player = "Robin Hood"
-    @white_graveyard = ["\u2656","\u2659"]
+    @white_graveyard = []
     @black_player = "Little John"
-    @black_graveyard = ["\u265F","\u265F","\u265E"]
+    @black_graveyard = []
   end
   
   def empty_board
@@ -16,6 +16,41 @@ class Board
       end
     end
     board_hash
+  end
+  
+  def access(square)
+    @board[square]
+  end
+  
+  def set_piece(square, piece = nil)
+    @board[square] = piece
+  end
+  
+  def change_squares(piece, origin, target)
+    piece.set_current_square(target)
+    set_piece(target, piece)
+    set_piece(origin)
+    #sets original square to nil after piece is moved.
+  end
+  
+  def move(origin, target)
+    
+    piece = access(origin)
+    destination = access(target)
+    
+    if piece == nil      
+      puts "there's no piece on that square!"      
+    elsif !piece.legal_move?(target)    
+      puts "not a legal move!"      
+    elsif destination != nil && piece.get_color != destination.get_color 
+      @white_graveyard << destination.get_name if destination.get_color == "white"
+      @black_graveyard << destination.get_name if destination.get_color == "black"      
+      change_squares(piece, origin, target)      
+    elsif destination == nil    
+      change_squares(piece, origin, target)      
+    else      
+      puts "theres's a friendly piece on that spot!"      
+    end
   end
   
   def new_board
@@ -64,25 +99,25 @@ class Board
     end
   end
   
-  def white_graveyard
+  def print_white_graveyard
     @white_graveyard.each do |captured_piece|
       print "#{captured_piece}"
     end
     puts ""
   end
   
-  def black_graveyard
+  def print_black_graveyard
     @black_graveyard.each do |captured_piece|
       print "#{captured_piece}"
     end
     puts ""
   end
   
-  def player_names
+  def show_player_names
     puts "White : #{@white_player}"
-    black_graveyard
+    print_black_graveyard
     puts "Black : #{@black_player}"
-    white_graveyard
+    print_white_graveyard
   end
   
   def display
@@ -110,11 +145,7 @@ class Board
     puts "  a   b   c   d   e   f   g   h  "
     puts ""
     
-    player_names
+    show_player_names
   end
   
 end
-
-board = Board.new
-board.new_board
-board.display
