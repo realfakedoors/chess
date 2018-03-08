@@ -8,7 +8,17 @@ class Pawn < Piece
   end
   
   def possible_moves
-    [:a3, :a4, :a5, :b3, :b4]
+    []
+  end
+  
+  def display
+    if @color == "white"
+      "\u265F"
+    elsif @color == "black"
+      "\u2659"
+    else
+      "x"
+    end
   end
   
 end

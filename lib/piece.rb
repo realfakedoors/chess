@@ -8,6 +8,10 @@ class Piece
     @current_square = square
   end
   
+  def get_current_square
+    @current_square
+  end
+  
   def get_name
     "#{@type}, #{@color}"
   end
