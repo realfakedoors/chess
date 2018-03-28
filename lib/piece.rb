@@ -12,6 +12,14 @@ class Piece
     @current_square
   end
   
+  def get_row
+    @current_square.to_s.match(/[1-8]/)
+  end
+  
+  def get_column
+    @current_square.to_s.match(/[a-h]/)
+  end
+  
   def get_name
     "#{@type}, #{@color}"
   end

@@ -8,7 +8,9 @@ class Pawn < Piece
   end
   
   def possible_moves
-    []
+    possible_moves = []
+    row = self.get_row
+    column = self.get_column
   end
   
   def display
@@ -16,8 +18,6 @@ class Pawn < Piece
       "\u265F"
     elsif @color == "black"
       "\u2659"
-    else
-      "x"
     end
   end
   
