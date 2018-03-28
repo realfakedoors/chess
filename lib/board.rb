@@ -95,16 +95,16 @@ class Board
   def display
     system "clear"
     puts ""    
-    puts " ------------------------------- "
-    
-    @board.each do |row|
-      puts "x"
+    puts "    -------------------------------    "
+    @board.each_with_index do |row, i|
+      i = (i - 8).abs
+      print " #{i} "
+      row.each {|square| print "| #{square.contents.display || " "} "}
+      puts "|"
+      puts "    -------------------------------    "
     end
-      
-    puts " ------------------------------- "
-    puts "  a   b   c   d   e   f   g   h  "
-    puts ""
-    
+    puts "     a   b   c   d   e   f   g   h     "
+    puts ""    
     show_player_names
   end
   
