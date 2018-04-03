@@ -14,4 +14,8 @@ class Square
     @contents = contents
   end
   
+  def coords
+    "#{@column}#{@row}"
+  end
+  
 end

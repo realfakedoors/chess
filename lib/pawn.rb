@@ -9,8 +9,19 @@ class Pawn < Piece
   
   def possible_moves
     possible_moves = []
+    
     row = self.get_row
     column = self.get_column
+    
+    if @color == "white" && row == 2
+      possible_moves << "#{column}#{(row + 1)}"
+      possible_moves << "#{column}#{(row + 2)}"
+    elsif @color == "black" && row == 7
+      possible_moves << "#{column}#{(row - 1)}"
+      possible_moves << "#{column}#{(row - 2)}"
+    end
+
+    possible_moves
   end
   
   def display

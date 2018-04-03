@@ -34,7 +34,9 @@ class Board
   def set_piece(square, piece = nil)
     square = access(square)
     square.set_contents(piece)
-    piece.set_current_square(square)
+    if !piece.nil?
+      piece.set_current_square(square)
+    end
   end
   
   def change_squares(piece, origin, target)
@@ -65,10 +67,15 @@ class Board
   end
   
   def new_board
-    "a".upto("h").each do |col|
-      self.set_piece("#{col}7", Pawn.new("black"))
-      self.set_piece("#{col}2", Pawn.new("white"))
-    end
+    
+    #sets all pawns of both colors - SAVE
+  #  "a".upto("h").each do |col|
+  #    self.set_piece("#{col}7", Pawn.new("black"))
+  #    self.set_piece("#{col}2", Pawn.new("white"))
+  #  end
+    
+    self.set_piece("a2", Pawn.new("white"))
+    self.set_piece("c7", Pawn.new("black"))
   end
   
   def print_white_graveyard
@@ -93,7 +100,7 @@ class Board
   end
   
   def display
-    system "clear"
+  #  system "clear"
     puts ""    
     puts "    -------------------------------    "
     @board.each_with_index do |row, i|

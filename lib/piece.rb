@@ -9,15 +9,15 @@ class Piece
   end
   
   def get_current_square
-    @current_square
+    @current_square.coords
   end
   
   def get_row
-    @current_square.to_s.match(/[1-8]/)
+    @current_square.coords.match(/[1-8]/).to_s.to_i
   end
   
   def get_column
-    @current_square.to_s.match(/[a-h]/)
+    @current_square.coords.match(/[a-h]/).to_s
   end
   
   def get_name
