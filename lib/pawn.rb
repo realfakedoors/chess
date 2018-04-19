@@ -13,12 +13,22 @@ class Pawn < Piece
     row = self.get_row
     column = self.get_column
     
-    if @color == "white" && row == 2
-      possible_moves << "#{column}#{(row + 1)}"
-      possible_moves << "#{column}#{(row + 2)}"
-    elsif @color == "black" && row == 7
-      possible_moves << "#{column}#{(row - 1)}"
-      possible_moves << "#{column}#{(row - 2)}"
+    if @color == "white"
+      (column.ord..column.ord + 2).each do |col|
+        col -= 1
+        possible_moves << "#{col.chr}#{(row + 1)}"
+      end
+      if row == 2
+        possible_moves << "#{column}#{(row + 2)}"
+      end
+    elsif @color == "black"
+      (column.ord..column.ord + 2).each do |col|
+        col += 1
+        possible_moves << "#{col.chr}#{(row - 1)}"
+      end
+      if row == 7
+        possible_moves << "#{column}#{(row - 2)}"
+      end
     end
 
     possible_moves

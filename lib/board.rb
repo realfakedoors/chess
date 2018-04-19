@@ -46,6 +46,22 @@ class Board
     #sets original square to nil after piece is moved.
   end
   
+  def column_adjacent?(piece, target)
+    if piece.get_column.ord == target.get_column.ord - 1 || piece.get_column.ord == target.get_column.ord + 1
+      return true
+    else false
+    end
+  end
+  
+  def pawn_attack_moves(piece, target)
+    #plugs into 'move' to ensure a pawn can only attack diagonally.    
+    if piece.get_color == "black" && target.get_row == (piece.get_row - 1)
+        return true if column_adjacent?(piece, target)
+    elsif piece.get_color == "white" && target.get_row == (piece.get_row + 1)
+        return true if column_adjacent?(piece, target)
+    end
+  end
+  
   def move(origin, target)
     
     piece = access(origin).contents
@@ -56,6 +72,10 @@ class Board
     elsif !piece.legal_move?(target)    
       puts "not a legal move!"      
     elsif destination != nil && piece.get_color != destination.get_color 
+      if piece.class == Pawn && !pawn_attack_moves(piece, destination)
+        puts "pawns can only attack diagonally!"
+        return
+      end
       @white_graveyard << destination.display if destination.get_color == "white"
       @black_graveyard << destination.display if destination.get_color == "black"      
       change_squares(piece, origin, target)      
@@ -75,7 +95,7 @@ class Board
   #  end
     
     self.set_piece("a2", Pawn.new("white"))
-    self.set_piece("a4", Pawn.new("black"))
+    self.set_piece("b3", Pawn.new("black"))
   end
   
   def print_white_graveyard
