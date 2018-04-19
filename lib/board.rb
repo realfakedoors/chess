@@ -56,8 +56,8 @@ class Board
     elsif !piece.legal_move?(target)    
       puts "not a legal move!"      
     elsif destination != nil && piece.get_color != destination.get_color 
-      @white_graveyard << destination.get_name if destination.get_color == "white"
-      @black_graveyard << destination.get_name if destination.get_color == "black"      
+      @white_graveyard << destination.display if destination.get_color == "white"
+      @black_graveyard << destination.display if destination.get_color == "black"      
       change_squares(piece, origin, target)      
     elsif destination == nil    
       change_squares(piece, origin, target)      
@@ -75,7 +75,7 @@ class Board
   #  end
     
     self.set_piece("a2", Pawn.new("white"))
-    self.set_piece("c7", Pawn.new("black"))
+    self.set_piece("a4", Pawn.new("black"))
   end
   
   def print_white_graveyard

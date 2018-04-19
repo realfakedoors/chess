@@ -28,6 +28,12 @@ class Piece
     @color
   end
   
+  def check(square)
+    #not sure if this should go in piece or board...
+    row = square.match(/[1-8]/).to_s
+    col = square.match(/[a-h]/).to_s
+  end
+  
   def legal_move?(destination)
     if self.possible_moves.any? {|poss| poss == destination}
       true
