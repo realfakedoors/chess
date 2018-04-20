@@ -3,7 +3,7 @@ class Game
   def play
     board = Board.new
     board.new_board
-    board.move("a2", "b3")
+    board.move("b2", "b3")
     board.display
   end
   
