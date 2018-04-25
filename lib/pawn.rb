@@ -23,7 +23,7 @@ class Pawn < Piece
       end
     elsif @color == "black"
       (column.ord..column.ord + 2).each do |col|
-        col += 1
+        col -= 1
         possible_moves << "#{col.chr}#{(row - 1)}"
       end
       if row == 7

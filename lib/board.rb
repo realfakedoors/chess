@@ -56,14 +56,14 @@ class Board
     end
   end
   
-  def pawn_attack_moves(piece, target)
+  def pawn_attack_moves(piece, destination)
     #plugs into 'move' to ensure a pawn can only attack diagonally.
-    if target == nil
+    if destination == nil
       false
-    elsif piece.get_color == "black" && target.get_color == "white" 
-      return true if target.get_row == (piece.get_row - 1) && column_adjacent?(piece, target)
-    elsif piece.get_color == "white" && target.get_color == "black" 
-      return true if target.get_row == (piece.get_row + 1) && column_adjacent?(piece, target)
+    elsif piece.get_color == "black" && destination.get_color == "white" 
+      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(piece, destination)
+    elsif piece.get_color == "white" && destination.get_color == "black" 
+      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(piece, destination)
     else
       false
     end
@@ -81,6 +81,42 @@ class Board
     end
   end
   
+  def eligible_for_promotion?(pawn)
+    if pawn.get_row == 7 && pawn.get_color == "white"
+      true
+    elsif pawn.get_row == 2 && pawn.get_color == "black"
+      true
+    else false
+    end
+  end
+  
+  def promote(piece, origin, target)
+    friendly_color = piece.get_color
+    set_piece(origin)
+    set_piece(target, Queen.new(friendly_color))
+  end
+  
+  def pawn_movement(piece, destination, origin, target)
+    if !column_adjacent?(piece, destination) && pawn_blocked?(piece, destination)
+      puts "another piece is in the way!"
+      return
+    elsif !pawn_attack_moves(piece, destination) && column_adjacent?(piece, destination)
+      puts "pawns can only attack diagonally!"
+      return
+    elsif eligible_for_promotion?(piece)
+      promote(piece, origin, target)
+    else
+      capture(piece, destination, origin, target)
+    end
+  end
+  
+  def capture(piece, destination, origin, target)
+    change_squares(piece, origin, target)
+    return if destination.nil?
+    @white_graveyard << destination.display if destination.get_color == "white"
+    @black_graveyard << destination.display if destination.get_color == "black"      
+  end
+  
   def move(origin, target)
     
     piece = access(origin).contents
@@ -91,21 +127,9 @@ class Board
     elsif !piece.legal_move?(target)    
       puts "not a legal move!"
     elsif piece.class == Pawn
-      if !column_adjacent?(piece, destination) && pawn_blocked?(piece, destination)
-        puts "another piece is in the way!"
-        return
-      elsif !pawn_attack_moves(piece, destination)
-        puts "pawns can only attack diagonally!"
-        return
-      else
-        @white_graveyard << destination.display if destination.get_color == "white"
-        @black_graveyard << destination.display if destination.get_color == "black"      
-        change_squares(piece, origin, target)
-      end
+      pawn_movement(piece, destination, origin, target)
     elsif destination != nil && piece.get_color != destination.get_color 
-      @white_graveyard << destination.display if destination.get_color == "white"
-      @black_graveyard << destination.display if destination.get_color == "black"      
-      change_squares(piece, origin, target)      
+      capture(piece, destination, origin, target)    
     elsif destination == nil    
       change_squares(piece, origin, target)      
     else      
@@ -121,10 +145,8 @@ class Board
   #    self.set_piece("#{col}2", Pawn.new("white"))
   #  end
     
-    self.set_piece("b2", Pawn.new("white"))
-    self.set_piece("a3", Pawn.new("black"))
-    self.set_piece("b3", Pawn.new("black"))
-    self.set_piece("c3", Pawn.new("black"))
+    self.set_piece("c2", Pawn.new("black"))
+    self.set_piece("d1", Pawn.new("white"))
   end
   
   def print_white_graveyard
