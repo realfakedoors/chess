@@ -2,10 +2,16 @@ class Board
   
   def initialize(board = self.empty_board)
     @board = board
+    
     @white_player = "Robin Hood"
     @white_graveyard = []
+    
     @black_player = "Little John"
     @black_graveyard = []
+    
+    @current_player = "white"
+    
+    @error_message = nil
   end
   
   def empty_board
@@ -29,6 +35,14 @@ class Board
     row -= 9
     row = row.abs.to_s
     @board[row.to_i - 1][column.ord - 97]
+  end
+  
+  def checkmate?
+    false
+  end
+  
+  def current_player
+    @current_player
   end
   
   def set_piece(square, piece = nil)
@@ -98,10 +112,10 @@ class Board
   
   def pawn_movement(piece, destination, origin, target)
     if !column_adjacent?(piece, destination) && pawn_blocked?(piece, destination)
-      puts "another piece is in the way!"
+      @error_message = "another piece is in the way!"
       return
     elsif !pawn_attack_moves(piece, destination) && column_adjacent?(piece, destination)
-      puts "pawns can only attack diagonally!"
+      @error_message = "pawns can only attack diagonally!"
       return
     elsif eligible_for_promotion?(piece)
       promote(piece, origin, target)
@@ -123,9 +137,9 @@ class Board
     destination = access(target).contents
     
     if piece == nil      
-      puts "there's no piece on that square!"      
+      @error_message = "there's no piece on that square!"      
     elsif !piece.legal_move?(target)    
-      puts "not a legal move!"
+      @error_message = "not a legal move!"
     elsif piece.class == Pawn
       pawn_movement(piece, destination, origin, target)
     elsif destination != nil && piece.get_color != destination.get_color 
@@ -133,7 +147,7 @@ class Board
     elsif destination == nil    
       change_squares(piece, origin, target)      
     else      
-      puts "theres's a friendly piece on that spot!"      
+      @error_message = "theres's a friendly piece on that spot!"      
     end
   end
   
@@ -170,8 +184,15 @@ class Board
     print_white_graveyard
   end
   
+  def show_error_message
+    unless @error_message.nil?
+      puts @error_message
+      puts ""
+    end
+  end
+  
   def display
-  #  system "clear"
+    system "clear"
     puts ""    
     puts "    -------------------------------    "
     @board.each_with_index do |row, i|
@@ -184,6 +205,7 @@ class Board
     puts "     a   b   c   d   e   f   g   h     "
     puts ""    
     show_player_names
+    show_error_message
   end
   
 end
