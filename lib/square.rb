@@ -18,4 +18,12 @@ class Square
     "#{@column}#{@row}"
   end
   
+  def column
+    @column
+  end
+  
+  def row
+    @row
+  end
+  
 end

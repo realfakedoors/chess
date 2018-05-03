@@ -11,6 +11,8 @@ class Board
     
     @current_player = "white"
     
+    @en_passant = nil
+    
     @error_message = nil
   end
   
@@ -60,24 +62,43 @@ class Board
     #sets original square to nil after piece is moved.
   end
   
-  def column_adjacent?(piece, target)
-    if target == nil
-      false
-    elsif piece.get_column.ord == target.get_column.ord - 1 || piece.get_column.ord == target.get_column.ord + 1
+  def column_adjacent?(origin, target)
+    origin = access(origin)
+    target = access(target)
+    
+    if origin.column.ord == target.column.ord - 1 || origin.column.ord == target.column.ord + 1
       return true
     else
       false
     end
   end
   
-  def pawn_attack_moves(piece, destination)
+  def en_passant(piece, target) 
+    if piece.get_color == "white"
+      enemy_square = access("#{target.column}#{target.row.to_i - 1}")
+      @white_graveyard << enemy_square.contents.display
+    elsif piece.get_color == "black"
+      enemy_square = access("#{target.column}#{target.row.to_i + 1}")
+      @black_graveyard << enemy_square.contents.display
+    end
+    enemy_square.set_contents(nil)
+  end
+    
+  
+  def pawn_attack_moves(piece, destination, origin, target)
     #plugs into 'move' to ensure a pawn can only attack diagonally.
-    if destination == nil
-      false
+    target = access(target)
+    if @en_passant != nil
+      if @en_passant[0] == target.coords && @en_passant[1] != piece.get_color
+        en_passant(piece, target)
+        true
+      end
+    elsif destination == nil
+      false    
     elsif piece.get_color == "black" && destination.get_color == "white" 
-      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(piece, destination)
+      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(origin, target)
     elsif piece.get_color == "white" && destination.get_color == "black" 
-      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(piece, destination)
+      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(origin, target)
     else
       false
     end
@@ -110,16 +131,35 @@ class Board
     set_piece(target, Queen.new(friendly_color))
   end
   
+  def en_passant_eligible?(piece, target)
+    target_row = target.match(/\d/).to_s.to_i
+    
+    if piece.get_color == "white" && piece.get_row == 2
+      return true if target_row == 4
+    elsif piece.get_color == "black" && piece.get_row == 7
+      return true if target_row == 5
+    end
+    false
+  end
+  
+  def set_en_passant(piece, target)
+    set_column = piece.get_column
+    set_row = (piece.get_row + target.match(/\d/).to_s.to_i) / 2
+    set_color = piece.get_color
+    @en_passant = ["#{set_column}#{set_row}", "#{set_color}"]
+  end
+  
   def pawn_movement(piece, destination, origin, target)
-    if !column_adjacent?(piece, destination) && pawn_blocked?(piece, destination)
+    if !column_adjacent?(origin, target) && pawn_blocked?(piece, destination)
       @error_message = "another piece is in the way!"
       return
-    elsif !pawn_attack_moves(piece, destination) && column_adjacent?(piece, destination)
+    elsif !pawn_attack_moves(piece, destination, origin, target) && column_adjacent?(origin, target)
       @error_message = "pawns can only attack diagonally!"
       return
     elsif eligible_for_promotion?(piece)
       promote(piece, origin, target)
     else
+      set_en_passant(piece, target) if en_passant_eligible?(piece, target)
       capture(piece, destination, origin, target)
     end
   end
@@ -147,20 +187,20 @@ class Board
     elsif destination == nil    
       change_squares(piece, origin, target)      
     else      
-      @error_message = "theres's a friendly piece on that spot!"      
+      @error_message = "there's a friendly piece on that spot!"      
     end
   end
   
   def new_board
+    #sets all pawns of both colors! SAVE
+    #"a".upto("h").each do |col|
+    #  self.set_piece("#{col}7", Pawn.new("black"))
+    #  self.set_piece("#{col}2", Pawn.new("white"))
+    #end
     
-    #sets all pawns of both colors - SAVE
-  #  "a".upto("h").each do |col|
-  #    self.set_piece("#{col}7", Pawn.new("black"))
-  #    self.set_piece("#{col}2", Pawn.new("white"))
-  #  end
-    
-    self.set_piece("c2", Pawn.new("black"))
-    self.set_piece("d1", Pawn.new("white"))
+    self.set_piece("c5", Pawn.new("white"))
+    self.set_piece("d5", Pawn.new("white"))
+    self.set_piece("e5", Pawn.new("white"))
   end
   
   def print_white_graveyard
