@@ -73,6 +73,8 @@ class Board
     end
   end
   
+  #################### pawn-specific methods ####################
+  
   def en_passant(piece, target) 
     if piece.get_color == "white"
       enemy_square = access("#{target.column}#{target.row.to_i - 1}")
@@ -164,6 +166,8 @@ class Board
     end
   end
   
+  ###############################################################
+  
   def capture(piece, destination, origin, target)
     change_squares(piece, origin, target)
     return if destination.nil?
@@ -193,14 +197,12 @@ class Board
   
   def new_board
     #sets all pawns of both colors! SAVE
-    #"a".upto("h").each do |col|
-    #  self.set_piece("#{col}7", Pawn.new("black"))
-    #  self.set_piece("#{col}2", Pawn.new("white"))
-    #end
+    "a".upto("h").each do |col|
+      self.set_piece("#{col}7", Pawn.new("black"))
+      self.set_piece("#{col}2", Pawn.new("white"))
+    end
     
-    self.set_piece("c5", Pawn.new("white"))
-    self.set_piece("d5", Pawn.new("white"))
-    self.set_piece("e5", Pawn.new("white"))
+    self.set_piece("c5", Bishop.new("white"))
   end
   
   def print_white_graveyard

@@ -8,30 +8,29 @@ class Pawn < Piece
   end
   
   def possible_moves
-    possible_moves = []
+    moves = []
     
-    row = self.get_row
     column = self.get_column
+    row = self.get_row
     
     if @color == "white"
       (column.ord..column.ord + 2).each do |col|
         col -= 1
-        possible_moves << "#{col.chr}#{(row + 1)}"
+        moves << "#{col.chr}#{(row + 1)}"
       end
       if row == 2
-        possible_moves << "#{column}#{(row + 2)}"
+        moves << "#{column}#{(row + 2)}"
       end
     elsif @color == "black"
       (column.ord..column.ord + 2).each do |col|
         col -= 1
-        possible_moves << "#{col.chr}#{(row - 1)}"
+        moves << "#{col.chr}#{(row - 1)}"
       end
       if row == 7
-        possible_moves << "#{column}#{(row - 2)}"
+        moves << "#{column}#{(row - 2)}"
       end
     end
-
-    possible_moves
+    moves
   end
   
   def display
