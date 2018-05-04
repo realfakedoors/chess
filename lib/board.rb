@@ -197,12 +197,18 @@ class Board
   
   def new_board
     #sets all pawns of both colors! SAVE
-    "a".upto("h").each do |col|
-      self.set_piece("#{col}7", Pawn.new("black"))
-      self.set_piece("#{col}2", Pawn.new("white"))
-    end
+    #"a".upto("h").each do |col|
+    #  self.set_piece("#{col}7", Pawn.new("black"))
+    #  self.set_piece("#{col}2", Pawn.new("white"))
+    #end
     
     self.set_piece("c5", Bishop.new("white"))
+    self.set_piece("f2", Bishop.new("black"))
+    self.set_piece("a7", Queen.new("white"))
+    self.set_piece("g1", Queen.new("black"))
+    self.set_piece("b8", Rook.new("white"))
+    self.set_piece("h6", Rook.new("black"))
+    
   end
   
   def print_white_graveyard

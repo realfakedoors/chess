@@ -21,7 +21,6 @@ class Bishop < Piece
       unless opposite_row < 1
         right_diags << "#{col}#{opposite_row}"
       end
-      break if row == 8
     end
     right_diags
   end
