@@ -175,6 +175,80 @@ class Board
     @black_graveyard << destination.display if destination.get_color == "black"      
   end
   
+  def check_each(array_of_squares)
+    if array_of_squares.any? {|square| !access(square).contents.nil?}
+      return false
+    else true
+    end
+  end
+  
+  def check_diagonals(starting_row, ending_row, starting_column, ending_column)
+    squares = []
+    #next in each loop, so we're only grabbing the squares in between.
+    #up-right
+    if starting_row < ending_row && starting_column < ending_column
+      (starting_row...ending_row).each do |row|
+        next if row == starting_row
+        starting_column += 1
+        squares << "#{starting_column.chr}#{row}"
+      end
+    #up-left
+    elsif starting_row < ending_row && starting_column > ending_column
+      (starting_row...ending_row).each do |row|
+        next if row == starting_row
+        starting_column -= 1
+        squares << "#{starting_column.chr}#{row}"
+      end
+    #down-left
+    elsif starting_row > ending_row && starting_column > ending_column
+        starting_row.downto(ending_row).each do |row|
+        next if row == starting_row || row == ending_row
+        starting_column -= 1
+        squares << "#{starting_column.chr}#{row}"
+      end
+    #down-right
+    else
+      starting_row.downto(ending_row).each do |row|
+        next if row == starting_row || row == ending_row
+        starting_column += 1
+        squares << "#{starting_column.chr}#{row}"
+      end
+    end
+    check_each(squares)
+  end
+  
+  def check_horizontals(starting_row, starting_column, ending_column)
+    #left
+    #right
+    true
+  end
+  
+  def check_verticals(starting_row, ending_row, starting_column)
+    #up
+    #down
+    true
+  end
+  
+  def not_blocked?(piece, origin, target)
+    return true if piece.class == Knight
+    
+    starting_square = access(origin)
+    ending_square = access(target)
+    
+    starting_row = starting_square.row.to_i
+    starting_column = starting_square.column.ord
+    ending_row = ending_square.row.to_i
+    ending_column = ending_square.column.ord
+    
+    if starting_row != ending_row && starting_column != ending_column
+      check_diagonals(starting_row, ending_row, starting_column, ending_column)
+    elsif starting_row == ending_row
+      check_horizontals(starting_row, starting_column, ending_column)
+    else
+      check_verticals(starting_row, ending_row, starting_column)
+    end
+  end
+  
   def move(origin, target)
     
     piece = access(origin).contents
@@ -186,12 +260,16 @@ class Board
       @error_message = "not a legal move!"
     elsif piece.class == Pawn
       pawn_movement(piece, destination, origin, target)
-    elsif destination != nil && piece.get_color != destination.get_color 
-      capture(piece, destination, origin, target)    
-    elsif destination == nil    
-      change_squares(piece, origin, target)      
-    else      
-      @error_message = "there's a friendly piece on that spot!"      
+    elsif not_blocked?(piece, origin, target)
+      if destination != nil && piece.get_color != destination.get_color 
+        capture(piece, destination, origin, target)    
+      elsif destination == nil    
+        change_squares(piece, origin, target)      
+      else      
+        @error_message = "there's a friendly piece on that spot!"      
+      end
+    else
+      @error_message = "you're blocked by another piece!"
     end
   end
   
