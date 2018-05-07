@@ -218,15 +218,39 @@ class Board
   end
   
   def check_horizontals(starting_row, starting_column, ending_column)
+    squares = []
     #left
+    if starting_column > ending_column
+      starting_column.downto(ending_column).each do |col|
+        next if col == starting_column || col == ending_column
+        squares << "#{col.chr}#{starting_row}"
+      end
     #right
-    true
+    else
+      (starting_column...ending_column).each do |col|
+        next if col == starting_column
+        squares << "#{col.chr}#{starting_row}"
+      end
+    end
+    check_each(squares)
   end
   
   def check_verticals(starting_row, ending_row, starting_column)
+    squares = []
     #up
+    if starting_row < ending_row
+      (starting_row...ending_row).each do |row|
+        next if row == starting_row
+        squares << "#{starting_column.chr}#{row}"
+      end
     #down
-    true
+    else
+      starting_row.downto(ending_row).each do |row|
+        next if row == starting_row || row == ending_row
+        squares << "#{starting_column.chr}#{row}"
+      end
+    end
+    check_each(squares)
   end
   
   def not_blocked?(piece, origin, target)
