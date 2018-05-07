@@ -304,7 +304,7 @@ class Board
     #  self.set_piece("#{col}2", Pawn.new("white"))
     #end
     
-    self.set_piece("c5", Knight.new("white"))
+    self.set_piece("c5", King.new("black"))
     self.set_piece("c6", Bishop.new("white"))
     self.set_piece("c4", Bishop.new("white"))
     self.set_piece("b5", Bishop.new("white"))
