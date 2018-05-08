@@ -2,6 +2,15 @@ class Piece
   
   def initialize
     @current_square = nil
+    @moved = nil
+  end
+  
+  def mark_as_moved
+    @moved = true
+  end
+  
+  def check_if_moved?
+    @moved
   end
   
   def set_current_square(square)

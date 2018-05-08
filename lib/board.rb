@@ -47,6 +47,10 @@ class Board
     @current_player
   end
   
+  def switch_players
+    @current_player == "white" ? @current_player = "black" : @current_player = "white"
+  end
+  
   def set_piece(square, piece = nil)
     square = access(square)
     square.set_contents(piece)
@@ -57,6 +61,9 @@ class Board
   
   def change_squares(piece, origin, target)
     piece.set_current_square(target)
+    if piece.class == King || piece.class == Rook
+      piece.mark_as_moved
+    end
     set_piece(target, piece)
     set_piece(origin, nil)
     #sets original square to nil after piece is moved.
@@ -70,6 +77,51 @@ class Board
       return true
     else
       false
+    end
+  end
+  
+  def castle_eligible?(color, direction)
+    color == "white" ? row = 1 : row = 8    
+    direction == "left" ? rook_column = "a" : rook_column = "h"
+    
+    rook = access("#{rook_column}#{row}").contents
+    if rook != nil
+      check_rook = rook.check_if_moved?
+    end
+    
+    king = access("e#{row}").contents
+    if king != nil
+      check_king = king.check_if_moved?
+    end
+    
+    if check_rook == nil && check_king == nil
+      check_horizontals(row, "e".ord, rook_column.ord)
+    else 
+      false
+    end
+  end
+  
+  def castle_move(color, direction)
+    color == "white" ? row = 1 : row = 8
+    set_piece("e#{row}", nil)
+    
+    if direction == "left"
+      set_piece("a#{row}", nil)
+      set_piece("c#{row}", King.new(color))
+      set_piece("d#{row}", Rook.new(color))
+    else
+      set_piece("h#{row}", nil)
+      set_piece("g#{row}", King.new(color))
+      set_piece("f#{row}", Rook.new(color))
+    end
+  end
+  
+  def castle(color, direction)
+    if castle_eligible?(color, direction)
+      castle_move(color, direction)
+    else
+      @error_message = "you can't castle that way!"
+      return
     end
   end
   
@@ -304,13 +356,12 @@ class Board
     #  self.set_piece("#{col}2", Pawn.new("white"))
     #end
     
-    self.set_piece("c5", King.new("black"))
-    self.set_piece("c6", Bishop.new("white"))
-    self.set_piece("c4", Bishop.new("white"))
-    self.set_piece("b5", Bishop.new("white"))
-    self.set_piece("d5", Bishop.new("white"))
-    self.set_piece("e6", Bishop.new("white"))
-    self.set_piece("e4", Bishop.new("black"))
+    self.set_piece("e1", King.new("white"))
+    self.set_piece("a1", Rook.new("white"))
+    self.set_piece("h1", Rook.new("white"))
+    self.set_piece("e8", King.new("black"))
+    self.set_piece("a8", Rook.new("black"))
+    self.set_piece("h8", Rook.new("black"))
     
   end
   

@@ -22,6 +22,14 @@ class Game
     
     if input == "menu"
       options_menu
+    elsif input.match(/^(castle)/)
+      if input.match(/(left)$/)
+        direction = "left"
+      elsif input.match(/(right)$/)
+        direction = "right"
+      else return
+      end
+      @board.castle(current_player, direction)
     elsif input.match(/[a-h][1-8],\s[a-h][1-8]/)
       origin_square = input.match(/^([a-h][1-8])/).to_s
       target_square = input.match(/([a-h][1-8])$/).to_s
