@@ -34,8 +34,6 @@ class Game
       origin_square = input.match(/^([a-h][1-8])/).to_s
       target_square = input.match(/([a-h][1-8])$/).to_s
       @board.move(origin_square, target_square)
-      #@board.switch_players
-      #to do: create method that switches @current_player
     else
       puts "invalid input, try again!"
     end

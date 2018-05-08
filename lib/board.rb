@@ -331,16 +331,21 @@ class Board
     destination = access(target).contents
     
     if piece == nil      
-      @error_message = "there's no piece on that square!"      
+      @error_message = "there's no piece on that square!"
+    elsif piece.get_color != @current_player
+      @error_message = "wrong color! it's not your turn!"
     elsif !piece.legal_move?(target)    
       @error_message = "not a legal move!"
     elsif piece.class == Pawn
       pawn_movement(piece, destination, origin, target)
+      switch_players
     elsif not_blocked?(piece, origin, target)
       if destination != nil && piece.get_color != destination.get_color 
-        capture(piece, destination, origin, target)    
+        capture(piece, destination, origin, target)
+        switch_players
       elsif destination == nil    
-        change_squares(piece, origin, target)      
+        change_squares(piece, origin, target)
+        switch_players
       else      
         @error_message = "there's a friendly piece on that spot!"      
       end
