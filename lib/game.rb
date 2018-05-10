@@ -1,14 +1,24 @@
 class Game
   
-  def play
-    @board = Board.new
-    @board.new_board
-    
+  def play    
+#    welcome_screen
+    @board = Board.new("Robin Hood", "Little John")
     until checkmate?
-      @board.display
       interact_with_board
     end
     game_over_screen
+  end
+  
+  def welcome_screen
+    system "clear"
+    puts "Chess"
+    puts "A game by Andy Holt"
+    puts "enter a name for player white:"
+    white_player = gets.chomp
+    puts "enter a name for player black:"
+    black_player = gets.chomp
+    @board = Board.new(white_player, black_player)
+    @board.new_board
   end
   
   def checkmate?
@@ -16,8 +26,10 @@ class Game
   end
   
   def interact_with_board
-    puts "it's #{current_player}'s turn!"
-    puts "enter your next move, or 'menu' for options!"
+    @board.display
+    puts "It's #{current_player}'s turn!"
+    puts "Enter your next move, or 'menu' for options!"
+    
     input = gets.chomp
     
     if input == "menu"
@@ -40,7 +52,34 @@ class Game
   end
     
   def options_menu
-    "options:"
+    system "clear"
+    puts "Options:"
+    puts "For general instructions on how to play, type 'tutorial'."
+    puts "To save the game, type 'save'."
+    puts "To start a previously saved game, type 'load'."
+    puts "To resume your game, type 'x'."
+    
+    input = gets.chomp
+    return if input.downcase == "x"
+    if input.downcase == "tutorial"
+      tutorial
+      return
+    end
+  end
+  
+  def tutorial
+    system "clear"
+    puts "How to play:"
+    puts ""
+    puts "Move your pieces by entering your piece's square,"
+    puts "followed by a comma, then your destination square."
+    puts "for example: 'a2, a4'."
+    puts ""
+    puts "To castle, enter 'castle left' or 'castle right'."
+    puts ""
+    puts "To resume your game, press 'x'."
+    input = gets.chomp
+    return if input.downcase == "x"
   end
   
   def current_player
@@ -49,20 +88,6 @@ class Game
     
   
   ########################
-  
-  def welcome_screen
-    puts "Welcome to Chess!"
-    puts "enter 'N' for a new game, or 'L' to load a previous saved game."
-    
-    choice = gets.chomp.upcase
-    if choice == "N"
-      new_game
-    elsif choice == "L"
-      load_screen
-    else
-      puts "whoops! enter either 'N' or 'L.'"
-    end
-  end
   
   def new_game
     #to do: enter player names

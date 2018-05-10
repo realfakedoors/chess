@@ -1,15 +1,15 @@
 class Board
   
-  def initialize(board = self.empty_board)
+  def initialize(white, black, board = self.empty_board)
     @board = board
     
-    @white_player = "Robin Hood"
+    @white_player = white
     @white_graveyard = []
     
-    @black_player = "Little John"
+    @black_player = black
     @black_graveyard = []
     
-    @current_player = "white"
+    @current_player = @white_player
     
     @en_passant = nil
     
@@ -48,7 +48,7 @@ class Board
   end
   
   def switch_players
-    @current_player == "white" ? @current_player = "black" : @current_player = "white"
+    @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
   end
   
   def set_piece(square, piece = nil)
