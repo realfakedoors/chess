@@ -27,6 +27,7 @@ class Game
   end
   
   def interact_with_board
+    @board.king_in_check?
     @board.display
     
     input = gets.chomp

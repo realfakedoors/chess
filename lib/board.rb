@@ -14,6 +14,7 @@ class Board
     @en_passant = nil
 
     @error_message = ""
+    @check_message = ""
   end
   
   def empty_board
@@ -49,6 +50,8 @@ class Board
   
   def switch_players
     @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
+    
+    @error_message = nil
   end
   
   def set_piece(square, piece = nil)
@@ -118,7 +121,13 @@ class Board
   
   def castle(color, direction)
     if castle_eligible?(color, direction)
-      castle_move(color, direction)
+      if king_in_check?
+        @error_message = "you can't castle out of check!"
+        return
+      else
+        castle_move(color, direction)
+        switch_players
+      end
     else
       @error_message = "you can't castle that way!"
       return
@@ -380,6 +389,33 @@ class Board
 #    
 #    self.set_piece("e1", King.new("white"))
 #    self.set_piece("e8", King.new("black"))
+    
+    self.set_piece("e1", King.new("white"))
+    self.set_piece("e8", King.new("black"))
+    self.set_piece("c1", Knight.new("white"))
+    self.set_piece("h1", Rook.new("white"))
+    self.set_piece("a1", Rook.new("white"))
+    self.set_piece("h8", Rook.new("black"))
+    self.set_piece("a8", Rook.new("black"))
+  end
+  
+  def king_in_check?
+    friendly_pieces = []
+    hostile_pieces = []
+    
+    @board.flatten.select{|sq| !sq.contents.nil?}.each do |sq| 
+      sq.contents.get_color == @current_player[1] ? friendly_pieces << sq.contents : hostile_pieces << sq.contents
+    end
+    
+    friendly_king = friendly_pieces.select{|pc| pc.get_type == "King"}.first
+    
+    hostiles_threatening_king = hostile_pieces.select do |pc|   
+      pc.possible_moves.any? do |move| 
+        move == friendly_king.get_current_square && not_blocked?(pc, pc.get_current_square, friendly_king.get_current_square)
+      end
+    end
+    
+    hostiles_threatening_king.any?{|pc| pc != nil} ? true : false
   end
   
   def print_white_graveyard
@@ -403,8 +439,10 @@ class Board
     print_white_graveyard
   end
   
-  def show_error_message
+  def show_error_messages
     puts @error_message
+    king_in_check? ? @check_message = "Check!" : @check_message = nil
+    puts @check_message
   end
   
   def display
@@ -421,7 +459,7 @@ class Board
     puts "     a   b   c   d   e   f   g   h     "
     puts ""    
     show_player_names
-    show_error_message
+    show_error_messages
     puts "It's #{current_player[0]}'s turn!"
     puts "Enter your next move, or 'menu' for options!"
     puts ""

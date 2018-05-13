@@ -33,6 +33,10 @@ class Piece
     "#{@type}, #{@color}"
   end
   
+  def get_type
+    @type
+  end
+  
   def get_color
     @color
   end
