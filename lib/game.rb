@@ -3,6 +3,7 @@ class Game
   def play    
 #    welcome_screen
     @board = Board.new("Robin Hood", "Little John")
+    @board.new_board
     until checkmate?
       interact_with_board
     end
@@ -27,8 +28,6 @@ class Game
   
   def interact_with_board
     @board.display
-    puts "It's #{current_player}'s turn!"
-    puts "Enter your next move, or 'menu' for options!"
     
     input = gets.chomp
     
@@ -41,7 +40,7 @@ class Game
         direction = "right"
       else return
       end
-      @board.castle(current_player, direction)
+      @board.castle(current_player[1], direction)
     elsif input.match(/[a-h][1-8],\s[a-h][1-8]/)
       origin_square = input.match(/^([a-h][1-8])/).to_s
       target_square = input.match(/([a-h][1-8])$/).to_s

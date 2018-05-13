@@ -3,17 +3,17 @@ class Board
   def initialize(white, black, board = self.empty_board)
     @board = board
     
-    @white_player = white
+    @white_player = [white, "white"]
     @white_graveyard = []
     
-    @black_player = black
+    @black_player = [black, "black"]
     @black_graveyard = []
     
     @current_player = @white_player
     
     @en_passant = nil
-    
-    @error_message = nil
+
+    @error_message = ""
   end
   
   def empty_board
@@ -332,7 +332,7 @@ class Board
     
     if piece == nil      
       @error_message = "there's no piece on that square!"
-    elsif piece.get_color != @current_player
+    elsif piece.get_color != @current_player[1]
       @error_message = "wrong color! it's not your turn!"
     elsif !piece.legal_move?(target)    
       @error_message = "not a legal move!"
@@ -355,19 +355,31 @@ class Board
   end
   
   def new_board
-    #sets all pawns of both colors! SAVE
-    #"a".upto("h").each do |col|
-    #  self.set_piece("#{col}7", Pawn.new("black"))
-    #  self.set_piece("#{col}2", Pawn.new("white"))
-    #end
-    
-    self.set_piece("e1", King.new("white"))
-    self.set_piece("a1", Rook.new("white"))
-    self.set_piece("h1", Rook.new("white"))
-    self.set_piece("e8", King.new("black"))
-    self.set_piece("a8", Rook.new("black"))
-    self.set_piece("h8", Rook.new("black"))
-    
+#    "a".upto("h").each do |col|
+#      self.set_piece("#{col}7", Pawn.new("black"))
+#      self.set_piece("#{col}2", Pawn.new("white"))
+#    end
+#
+#    self.set_piece("a1", Rook.new("white"))
+#    self.set_piece("h1", Rook.new("white"))
+#    self.set_piece("a8", Rook.new("black"))
+#    self.set_piece("h8", Rook.new("black"))
+#    
+#    self.set_piece("b1", Knight.new("white"))
+#    self.set_piece("g1", Knight.new("white"))
+#    self.set_piece("b8", Knight.new("black"))
+#    self.set_piece("g8", Knight.new("black"))
+#    
+#    self.set_piece("c1", Bishop.new("white"))
+#    self.set_piece("f1", Bishop.new("white"))
+#    self.set_piece("c8", Bishop.new("black"))
+#    self.set_piece("f8", Bishop.new("black"))
+#    
+#    self.set_piece("d1", Queen.new("white"))
+#    self.set_piece("d8", Queen.new("black"))
+#    
+#    self.set_piece("e1", King.new("white"))
+#    self.set_piece("e8", King.new("black"))
   end
   
   def print_white_graveyard
@@ -385,17 +397,14 @@ class Board
   end
   
   def show_player_names
-    puts "White : #{@white_player}"
+    puts "White : #{@white_player[0]}"
     print_black_graveyard
-    puts "Black : #{@black_player}"
+    puts "Black : #{@black_player[0]}"
     print_white_graveyard
   end
   
   def show_error_message
-    unless @error_message.nil?
-      puts @error_message
-      puts ""
-    end
+    puts @error_message
   end
   
   def display
@@ -413,6 +422,9 @@ class Board
     puts ""    
     show_player_names
     show_error_message
+    puts "It's #{current_player[0]}'s turn!"
+    puts "Enter your next move, or 'menu' for options!"
+    puts ""
   end
   
 end
