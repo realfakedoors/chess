@@ -41,12 +41,16 @@ class Board
   end
   
   def checkmate?
-    false
+    false unless king_in_check? && !recovery_possible?
+  end
+  
+  def stalemate?
+    false unless !king_in_check? && !legal_moves_possible?
   end
   
   def current_player
     @current_player
-  end
+  end  
   
   def switch_players
     @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
@@ -125,8 +129,9 @@ class Board
         @error_message = "you can't castle out of check!"
         return
       else
+        record_board_state
         castle_move(color, direction)
-        switch_players
+        king_threatened?
       end
     else
       @error_message = "you can't castle that way!"
@@ -334,6 +339,16 @@ class Board
     end
   end
   
+  def non_pawn_movement(piece, destination, origin, target)
+    if destination != nil && piece.get_color != destination.get_color
+      capture(piece, destination, origin, target)
+    elsif destination == nil
+      change_squares(piece, origin, target)
+    else      
+      @error_message = "there's a friendly piece on that spot!"      
+    end
+  end
+  
   def move(origin, target)
     
     piece = access(origin).contents
@@ -346,18 +361,13 @@ class Board
     elsif !piece.legal_move?(target)    
       @error_message = "not a legal move!"
     elsif piece.class == Pawn
+      record_board_state
       pawn_movement(piece, destination, origin, target)
-      switch_players
+      king_threatened?
     elsif not_blocked?(piece, origin, target)
-      if destination != nil && piece.get_color != destination.get_color 
-        capture(piece, destination, origin, target)
-        switch_players
-      elsif destination == nil    
-        change_squares(piece, origin, target)
-        switch_players
-      else      
-        @error_message = "there's a friendly piece on that spot!"      
-      end
+      record_board_state
+      non_pawn_movement(piece, destination, origin, target)
+      king_threatened?
     else
       @error_message = "you're blocked by another piece!"
     end
@@ -392,11 +402,8 @@ class Board
     
     self.set_piece("e1", King.new("white"))
     self.set_piece("e8", King.new("black"))
-    self.set_piece("c1", Knight.new("white"))
-    self.set_piece("h1", Rook.new("white"))
     self.set_piece("a1", Rook.new("white"))
-    self.set_piece("h8", Rook.new("black"))
-    self.set_piece("a8", Rook.new("black"))
+    self.set_piece("c3", Rook.new("black"))
   end
   
   def king_in_check?
@@ -416,6 +423,48 @@ class Board
     end
     
     hostiles_threatening_king.any?{|pc| pc != nil} ? true : false
+  end
+  
+  def record_board_state
+    @prev_board_state = {}
+    @board.flatten.each do |square|
+      next if square.contents == nil
+      column = square.column
+      row = square.row
+      contents = square.contents
+      
+      @prev_board_state["#{column}#{row}"] = contents
+    end
+  end
+  
+  def king_threatened?
+    if king_in_check?
+      revert_illegal_move
+    else
+      switch_players
+    end
+  end
+  
+  def revert_illegal_move
+    @error_message = "You can't put your own king in danger!"
+    @board = []
+    @board = self.empty_board
+    
+    @prev_board_state.each do |coords, contents|
+      self.set_piece(coords, contents)
+    end
+  end
+  
+  def all_legal_moves
+    ["moves"]
+  end
+  
+  def legal_moves_possible?
+    true unless all_legal_moves.first == nil
+  end
+  
+  def recovery_possible?
+    true
   end
   
   def print_white_graveyard

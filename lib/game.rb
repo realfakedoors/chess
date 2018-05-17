@@ -4,7 +4,7 @@ class Game
 #    welcome_screen
     @board = Board.new("Robin Hood", "Little John")
     @board.new_board
-    until checkmate?
+    until game_over?
       interact_with_board
     end
     game_over_screen
@@ -12,18 +12,20 @@ class Game
   
   def welcome_screen
     system "clear"
+    
     puts "Chess"
     puts "A game by Andy Holt"
     puts "enter a name for player white:"
     white_player = gets.chomp
     puts "enter a name for player black:"
     black_player = gets.chomp
+    
     @board = Board.new(white_player, black_player)
     @board.new_board
   end
   
-  def checkmate?
-    return true if @board.checkmate?
+  def game_over?
+    return true if @board.checkmate? || @board.stalemate?
   end
   
   def interact_with_board
