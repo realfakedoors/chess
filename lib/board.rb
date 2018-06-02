@@ -30,6 +30,10 @@ class Board
     board
   end
   
+  def get_board
+    @board
+  end
+  
   def access(square)
     #takes a string with a letter and number as input,
     #and returns the corresponding square.
@@ -41,11 +45,11 @@ class Board
   end
   
   def checkmate?
-    false unless king_in_check? && !recovery_possible?
+    true if king_in_check? && !legal_moves_possible?
   end
   
   def stalemate?
-    false unless !king_in_check? && !legal_moves_possible?
+    true if !king_in_check? && !legal_moves_possible?
   end
   
   def current_player
@@ -68,7 +72,7 @@ class Board
   
   def change_squares(piece, origin, target)
     piece.set_current_square(target)
-    if piece.class == King || piece.class == Rook
+    if piece.is_a?(King) || piece.is_a?(Rook)
       piece.mark_as_moved
     end
     set_piece(target, piece)
@@ -77,10 +81,10 @@ class Board
   end
   
   def column_adjacent?(origin, target)
-    origin = access(origin)
-    target = access(target)
+    origin_square = access(origin)
+    target_square = access(target)
     
-    if origin.column.ord == target.column.ord - 1 || origin.column.ord == target.column.ord + 1
+    if origin_square.column.ord == target_square.column.ord - 1 || origin_square.column.ord == target_square.column.ord + 1
       return true
     else
       false
@@ -164,9 +168,9 @@ class Board
     elsif destination == nil
       false    
     elsif piece.get_color == "black" && destination.get_color == "white" 
-      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(origin, target)
+      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(origin, target.coords)
     elsif piece.get_color == "white" && destination.get_color == "black" 
-      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(origin, target)
+      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(origin, target.coords)
     else
       false
     end
@@ -226,9 +230,11 @@ class Board
       return
     elsif eligible_for_promotion?(piece)
       promote(piece, origin, target)
+ #     switch_players
     else
       set_en_passant(piece, target) if en_passant_eligible?(piece, target)
       capture(piece, destination, origin, target)
+ #     switch_players
     end
   end
   
@@ -320,7 +326,7 @@ class Board
   end
   
   def not_blocked?(piece, origin, target)
-    return true if piece.class == Knight
+    return true if piece.is_a?(Knight)
     
     starting_square = access(origin)
     ending_square = access(target)
@@ -342,8 +348,10 @@ class Board
   def non_pawn_movement(piece, destination, origin, target)
     if destination != nil && piece.get_color != destination.get_color
       capture(piece, destination, origin, target)
+#      switch_players
     elsif destination == nil
       change_squares(piece, origin, target)
+#      switch_players
     else      
       @error_message = "there's a friendly piece on that spot!"      
     end
@@ -360,7 +368,9 @@ class Board
       @error_message = "wrong color! it's not your turn!"
     elsif !piece.legal_move?(target)    
       @error_message = "not a legal move!"
-    elsif piece.class == Pawn
+    elsif !destination.nil? && piece.get_color == destination.get_color
+      @error_message = "no friendly fire!"
+    elsif piece.is_a?(Pawn)
       record_board_state
       pawn_movement(piece, destination, origin, target)
       king_threatened?
@@ -374,36 +384,32 @@ class Board
   end
   
   def new_board
-#    "a".upto("h").each do |col|
-#      self.set_piece("#{col}7", Pawn.new("black"))
-#      self.set_piece("#{col}2", Pawn.new("white"))
-#    end
-#
-#    self.set_piece("a1", Rook.new("white"))
-#    self.set_piece("h1", Rook.new("white"))
-#    self.set_piece("a8", Rook.new("black"))
-#    self.set_piece("h8", Rook.new("black"))
-#    
-#    self.set_piece("b1", Knight.new("white"))
-#    self.set_piece("g1", Knight.new("white"))
-#    self.set_piece("b8", Knight.new("black"))
-#    self.set_piece("g8", Knight.new("black"))
-#    
-#    self.set_piece("c1", Bishop.new("white"))
-#    self.set_piece("f1", Bishop.new("white"))
-#    self.set_piece("c8", Bishop.new("black"))
-#    self.set_piece("f8", Bishop.new("black"))
-#    
-#    self.set_piece("d1", Queen.new("white"))
-#    self.set_piece("d8", Queen.new("black"))
-#    
-#    self.set_piece("e1", King.new("white"))
-#    self.set_piece("e8", King.new("black"))
+    "a".upto("h").each do |col|
+      self.set_piece("#{col}7", Pawn.new("black"))
+      self.set_piece("#{col}2", Pawn.new("white"))
+    end
+
+    self.set_piece("a1", Rook.new("white"))
+    self.set_piece("h1", Rook.new("white"))
+    self.set_piece("a8", Rook.new("black"))
+    self.set_piece("h8", Rook.new("black"))
+    
+    self.set_piece("b1", Knight.new("white"))
+    self.set_piece("g1", Knight.new("white"))
+    self.set_piece("b8", Knight.new("black"))
+    self.set_piece("g8", Knight.new("black"))
+    
+    self.set_piece("c1", Bishop.new("white"))
+    self.set_piece("f1", Bishop.new("white"))
+    self.set_piece("c8", Bishop.new("black"))
+    self.set_piece("f8", Bishop.new("black"))
+    
+    self.set_piece("d1", Queen.new("white"))
+    self.set_piece("d8", Queen.new("black"))
     
     self.set_piece("e1", King.new("white"))
     self.set_piece("e8", King.new("black"))
-    self.set_piece("a1", Rook.new("white"))
-    self.set_piece("c3", Rook.new("black"))
+    
   end
   
   def king_in_check?
@@ -414,15 +420,23 @@ class Board
       sq.contents.get_color == @current_player[1] ? friendly_pieces << sq.contents : hostile_pieces << sq.contents
     end
     
-    friendly_king = friendly_pieces.select{|pc| pc.get_type == "King"}.first
+    friendly_king = friendly_pieces.select{|pc| pc.is_a?(King)}.first
     
-    hostiles_threatening_king = hostile_pieces.select do |pc|   
-      pc.possible_moves.any? do |move| 
-        move == friendly_king.get_current_square && not_blocked?(pc, pc.get_current_square, friendly_king.get_current_square)
+    hostiles_threatening_king = hostile_pieces.select do |pc|
+      pc.possible_moves.any? do |move|
+        if pc.is_a?(Pawn)
+          pawn_attack_moves(pc, friendly_king, pc.get_current_square, friendly_king.get_current_square)
+        else
+          move == friendly_king.get_current_square && not_blocked?(pc, pc.get_current_square, friendly_king.get_current_square)
+        end
       end
     end
-    
-    hostiles_threatening_king.any?{|pc| pc != nil} ? true : false
+    if hostiles_threatening_king.any?{|pc| !pc.nil?}
+      @check_message = "Check!"
+      return true 
+    else 
+      return false
+    end
   end
   
   def record_board_state
@@ -446,25 +460,82 @@ class Board
   end
   
   def revert_illegal_move
-    @error_message = "You can't put your own king in danger!"
     @board = []
     @board = self.empty_board
     
     @prev_board_state.each do |coords, contents|
       self.set_piece(coords, contents)
     end
+    
+#    switch_players
+    @error_message = "You can't put your own king in danger!"
   end
   
-  def all_legal_moves
-    ["moves"]
+  def find_legal_moves
+    record_board_state
+    fresh_board = Board.new("w","b")
+    fresh_board.empty_board
+    legal_moves = []
+    
+    @prev_board_state.each do |coords, contents|
+      fresh_board.set_piece(coords, contents)
+    end
+    
+    friendly_pieces = []
+  
+    fresh_board.get_board.flatten.each do |square|
+      next if square.contents == nil || square.contents.get_color != @current_player[1]
+      friendly_pieces << square.contents
+    end
+    
+    friendly_pieces.each do |piece|
+      potential_moves = []
+      this_square = piece.get_current_square
+      piece.possible_moves.each do |move|
+        if !access(move).contents.nil?
+          destination = access(move).contents
+        else
+          destination = nil
+        end
+        
+        if piece.is_a?(Pawn)
+          if !column_adjacent?(this_square, move) && !pawn_blocked?(piece, destination)
+            potential_moves << move
+          elsif column_adjacent?(this_square, move) && pawn_attack_moves(piece, destination, this_square, move)
+            potential_moves << move
+          else next
+          end
+        elsif not_blocked?(piece, this_square, move) 
+          if destination.nil?
+            potential_moves << move
+          elsif piece.get_color != destination.get_color
+            potential_moves << move
+          end
+        end
+      end
+
+      potential_moves.each do |potential_move|
+        fresh_board.empty_board
+        @prev_board_state.each do |coords, contents|
+          fresh_board.set_piece(coords, contents)
+        end
+        
+        fresh_board.change_squares(piece, this_square, potential_move)
+        fresh_board.switch_players
+        
+        if !fresh_board.king_in_check?
+          legal_moves << potential_move
+        else
+          fresh_board.change_squares(piece, potential_move, this_square)
+        end
+        fresh_board.switch_players
+      end
+    end
+    legal_moves
   end
   
   def legal_moves_possible?
-    true unless all_legal_moves.first == nil
-  end
-  
-  def recovery_possible?
-    true
+    true if !find_legal_moves.first.nil?
   end
   
   def print_white_graveyard
@@ -490,7 +561,6 @@ class Board
   
   def show_error_messages
     puts @error_message
-    king_in_check? ? @check_message = "Check!" : @check_message = nil
     puts @check_message
   end
   

@@ -47,6 +47,10 @@ class Piece
     col = square.match(/[a-h]/).to_s
   end
   
+  def in_bounds?(move)
+    (97..104).include?(move.first) && (1..8).include?(move.last)
+  end
+  
   def legal_move?(destination)
     if self.possible_moves.any? {|poss| poss == destination}
       true

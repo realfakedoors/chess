@@ -25,7 +25,7 @@ class Game
   end
   
   def game_over?
-    return true if @board.checkmate? || @board.stalemate?
+    return true if @board.stalemate? || @board.checkmate?
   end
   
   def interact_with_board
@@ -104,7 +104,13 @@ class Game
   end
   
   def game_over_screen
-    puts "game over! #{current_player} wins!"
+    @board.display
+    if @board.stalemate?
+      puts "The game has ended in a stalemate!"
+    elsif @board.checkmate?
+      @board.switch_players
+      puts "game over! #{current_player[0]} wins!"
+    end
   end
   
 end
