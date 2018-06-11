@@ -3,25 +3,30 @@ class Board
   def initialize(white, black, board = self.empty_board, current_player = "white")
     @board = board
     
+    #graveyards represent the pieces each player has captured.
     @white_player = [white, "white"]
     @white_graveyard = []
     
     @black_player = [black, "black"]
     @black_graveyard = []
     
+    #skipping this default value is important for loading a saved game where it happens to be black's turn.
     if current_player == "white"
       @current_player = @white_player
     else
       @current_player = @black_player
     end
     
+    #a flag for checking en passant status each turn: only not nil if a pawn made a two-square advance last turn.
     @en_passant = nil
 
+    #these display if an error is made, or if check or checkmate.
     @error_message = ""
     @check_message = ""
   end
   
   def empty_board
+    #creates 64 squares, places them on the board, and letters/numbers them accordingly.
     board = []
 
     8.downto(1).each do |row_number|
@@ -43,8 +48,7 @@ class Board
   end
   
   def access(square)
-    #takes a string with a letter and number as input,
-    #and returns the corresponding square.
+    #takes a string with a letter and number as input, and returns the corresponding square.
     column = square.match(/[a-h]/).to_s
     row = square.match(/[1-8]/).to_s.to_i
     row -= 9
@@ -62,11 +66,61 @@ class Board
   
   def current_player
     @current_player
-  end  
+  end
+  
+  def legal_moves_possible?
+    true if !find_legal_moves.first.nil?
+  end
+  
+  def print_white_graveyard
+    @white_graveyard.each do |captured_piece|
+      print "#{captured_piece}"
+    end
+    puts ""
+  end
+  
+  def print_black_graveyard
+    @black_graveyard.each do |captured_piece|
+      print "#{captured_piece}"
+    end
+    puts ""
+  end
+  
+  def show_player_names
+    puts "White : #{@white_player[0]}"
+    print_black_graveyard
+    puts "Black : #{@black_player[0]}"
+    print_white_graveyard
+  end
+  
+  def show_error_messages
+    puts @error_message
+    puts @check_message
+  end
+  
+  def display
+    system "clear"
+    puts ""    
+    puts "    -------------------------------    "
+    @board.each_with_index do |row, i|
+      i = (i - 8).abs
+      print " #{i} "
+      row.each {|square| print "| #{square.contents.display || " "} "}
+      puts "|"
+      puts "    -------------------------------    "
+    end
+    puts "     a   b   c   d   e   f   g   h     "
+    puts ""    
+    show_player_names
+    show_error_messages
+    puts "It's #{current_player[0]}'s turn!"
+    puts "Enter your next move, or 'menu' for options!"
+    puts ""
+  end
   
   def switch_players
     @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
-    
+    #resets the error message, since we only switch players if a turn is legal.
     @error_message = nil
   end
   
@@ -84,19 +138,8 @@ class Board
       piece.mark_as_moved
     end
     set_piece(target, piece)
-    set_piece(origin, nil)
     #sets original square to nil after piece is moved.
-  end
-  
-  def column_adjacent?(origin, target)
-    origin_square = access(origin)
-    target_square = access(target)
-    
-    if origin_square.column.ord == target_square.column.ord - 1 || origin_square.column.ord == target_square.column.ord + 1
-      return true
-    else
-      false
-    end
+    set_piece(origin, nil)
   end
   
   def castle_eligible?(color, direction)
@@ -150,103 +193,6 @@ class Board
       return
     end
   end
-  
-  #################### pawn-specific methods ####################
-  
-  def en_passant(piece, target) 
-    if piece.get_color == "white"
-      enemy_square = access("#{target.column}#{target.row.to_i - 1}")
-      @white_graveyard << enemy_square.contents.display
-    elsif piece.get_color == "black"
-      enemy_square = access("#{target.column}#{target.row.to_i + 1}")
-      @black_graveyard << enemy_square.contents.display
-    end
-    enemy_square.set_contents(nil)
-  end
-    
-  
-  def pawn_attack_moves(piece, destination, origin, target)
-    #plugs into 'move' to ensure a pawn can only attack diagonally.
-    target = access(target)
-    if @en_passant != nil
-      if @en_passant[0] == target.coords && @en_passant[1] != piece.get_color
-        en_passant(piece, target)
-        true
-      end
-    elsif destination == nil
-      false    
-    elsif piece.get_color == "black" && destination.get_color == "white" 
-      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(origin, target.coords)
-    elsif piece.get_color == "white" && destination.get_color == "black" 
-      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(origin, target.coords)
-    else
-      false
-    end
-  end
-  
-  def pawn_blocked?(piece, target)
-    if piece.get_color == "black"
-      square_in_front = access("#{piece.get_column}#{piece.get_row - 1}")
-      return true if square_in_front.contents != nil
-    elsif piece.get_color == "white"
-      square_in_front = access("#{piece.get_column}#{piece.get_row + 1}")
-      return true if square_in_front.contents != nil
-    else
-      return false
-    end
-  end
-  
-  def eligible_for_promotion?(pawn)
-    if pawn.get_row == 7 && pawn.get_color == "white"
-      true
-    elsif pawn.get_row == 2 && pawn.get_color == "black"
-      true
-    else false
-    end
-  end
-  
-  def promote(piece, origin, target)
-    friendly_color = piece.get_color
-    set_piece(origin)
-    set_piece(target, Queen.new(friendly_color))
-  end
-  
-  def en_passant_eligible?(piece, target)
-    target_row = target.match(/\d/).to_s.to_i
-    
-    if piece.get_color == "white" && piece.get_row == 2
-      return true if target_row == 4
-    elsif piece.get_color == "black" && piece.get_row == 7
-      return true if target_row == 5
-    end
-    false
-  end
-  
-  def set_en_passant(piece, target)
-    set_column = piece.get_column
-    set_row = (piece.get_row + target.match(/\d/).to_s.to_i) / 2
-    set_color = piece.get_color
-    @en_passant = ["#{set_column}#{set_row}", "#{set_color}"]
-  end
-  
-  def pawn_movement(piece, destination, origin, target)
-    if !column_adjacent?(origin, target) && pawn_blocked?(piece, destination)
-      @error_message = "another piece is in the way!"
-      return
-    elsif !pawn_attack_moves(piece, destination, origin, target) && column_adjacent?(origin, target)
-      @error_message = "pawns can only attack diagonally!"
-      return
-    elsif eligible_for_promotion?(piece)
-      promote(piece, origin, target)
- #     switch_players
-    else
-      set_en_passant(piece, target) if en_passant_eligible?(piece, target)
-      capture(piece, destination, origin, target)
- #     switch_players
-    end
-  end
-  
-  ###############################################################
   
   def capture(piece, destination, origin, target)
     change_squares(piece, origin, target)
@@ -415,7 +361,6 @@ class Board
     
     self.set_piece("e1", King.new("white"))
     self.set_piece("e8", King.new("black"))
-    
   end
   
   def king_in_check?
@@ -446,6 +391,7 @@ class Board
   end
   
   def record_board_state
+    #saves the board before a move is made, in case it's illegal and needs to be reverted.
     @prev_board_state = {}
     @board.flatten.each do |square|
       next if square.contents == nil
@@ -457,15 +403,8 @@ class Board
     end
   end
   
-  def king_threatened?
-    if king_in_check?
-      revert_illegal_move
-    else
-      switch_players
-    end
-  end
-  
   def revert_illegal_move
+    #brings the board back to its previous state when an illegal move is made.
     @board = []
     @board = self.empty_board
     
@@ -476,23 +415,36 @@ class Board
     @error_message = "You can't put your own king in danger!"
   end
   
+  def king_threatened?
+    if king_in_check?
+      revert_illegal_move
+    else
+      switch_players
+    end
+  end
+  
+  def set_from_previous(board)
+    @prev_board_state.each do |coords, contents|
+      board.set_piece(coords, contents)
+    end
+  end
+  
   def find_legal_moves
+    #looks for legal moves by creating a dummy board, making every move
+    #possible, and recording the move if it doesn't put the king in check.
     record_board_state
     fresh_board = Board.new("w","b")
     fresh_board.empty_board
     legal_moves = []
     
-    @prev_board_state.each do |coords, contents|
-      fresh_board.set_piece(coords, contents)
-    end
-    
+    set_from_previous(fresh_board)
+    #finds all friendly pieces on the board.
     friendly_pieces = []
-  
     fresh_board.get_board.flatten.each do |square|
       next if square.contents == nil || square.contents.get_color != @current_player[1]
       friendly_pieces << square.contents
     end
-    
+    #runs through every friendly piece and tests every possible move on our mock board.
     friendly_pieces.each do |piece|
       potential_moves = []
       this_square = piece.get_current_square
@@ -521,13 +473,9 @@ class Board
 
       potential_moves.each do |potential_move|
         fresh_board.empty_board
-        @prev_board_state.each do |coords, contents|
-          fresh_board.set_piece(coords, contents)
-        end
-        
+        set_from_previous(fresh_board)      
         fresh_board.change_squares(piece, this_square, potential_move)
-        fresh_board.switch_players
-        
+        fresh_board.switch_players        
         if !fresh_board.king_in_check?
           legal_moves << potential_move
         else
@@ -539,54 +487,108 @@ class Board
     legal_moves
   end
   
-  def legal_moves_possible?
-    true if !find_legal_moves.first.nil?
-  end
-  
-  def print_white_graveyard
-    @white_graveyard.each do |captured_piece|
-      print "#{captured_piece}"
+  #################### pawn-specific methods ####################
+    
+  def column_adjacent?(origin, target)
+    origin_square = access(origin)
+    target_square = access(target)
+    
+    if origin_square.column.ord == target_square.column.ord - 1 || origin_square.column.ord == target_square.column.ord + 1
+      return true
+    else
+      false
     end
-    puts ""
   end
   
-  def print_black_graveyard
-    @black_graveyard.each do |captured_piece|
-      print "#{captured_piece}"
+  def en_passant(piece, target) 
+    if piece.get_color == "white"
+      enemy_square = access("#{target.column}#{target.row.to_i - 1}")
+      @white_graveyard << enemy_square.contents.display
+    elsif piece.get_color == "black"
+      enemy_square = access("#{target.column}#{target.row.to_i + 1}")
+      @black_graveyard << enemy_square.contents.display
     end
-    puts ""
+    enemy_square.set_contents(nil)
   end
+    
   
-  def show_player_names
-    puts "White : #{@white_player[0]}"
-    print_black_graveyard
-    puts "Black : #{@black_player[0]}"
-    print_white_graveyard
-  end
-  
-  def show_error_messages
-    puts @error_message
-    puts @check_message
-  end
-  
-  def display
-    system "clear"
-    puts ""    
-    puts "    -------------------------------    "
-    @board.each_with_index do |row, i|
-      i = (i - 8).abs
-      print " #{i} "
-      row.each {|square| print "| #{square.contents.display || " "} "}
-      puts "|"
-      puts "    -------------------------------    "
+  def pawn_attack_moves(piece, destination, origin, target)
+    #plugs into 'pawn_movement' to ensure a pawn can only attack diagonally.
+    target = access(target)
+    if @en_passant != nil
+      if @en_passant[0] == target.coords && @en_passant[1] != piece.get_color
+        en_passant(piece, target)
+        true
+      end
+    elsif destination == nil
+      false    
+    elsif piece.get_color == "black" && destination.get_color == "white" 
+      return true if destination.get_row == (piece.get_row - 1) && column_adjacent?(origin, target.coords)
+    elsif piece.get_color == "white" && destination.get_color == "black" 
+      return true if destination.get_row == (piece.get_row + 1) && column_adjacent?(origin, target.coords)
+    else
+      false
     end
-    puts "     a   b   c   d   e   f   g   h     "
-    puts ""    
-    show_player_names
-    show_error_messages
-    puts "It's #{current_player[0]}'s turn!"
-    puts "Enter your next move, or 'menu' for options!"
-    puts ""
+  end
+  
+  def pawn_blocked?(piece, target)
+    if piece.get_color == "black"
+      square_in_front = access("#{piece.get_column}#{piece.get_row - 1}")
+      return true if square_in_front.contents != nil
+    elsif piece.get_color == "white"
+      square_in_front = access("#{piece.get_column}#{piece.get_row + 1}")
+      return true if square_in_front.contents != nil
+    else
+      return false
+    end
+  end
+  
+  def eligible_for_promotion?(pawn)
+    if pawn.get_row == 7 && pawn.get_color == "white"
+      true
+    elsif pawn.get_row == 2 && pawn.get_color == "black"
+      true
+    else false
+    end
+  end
+  
+  def promote(piece, origin, target)
+    friendly_color = piece.get_color
+    set_piece(origin)
+    set_piece(target, Queen.new(friendly_color))
+  end
+  
+  def en_passant_eligible?(piece, target)
+    target_row = target.match(/\d/).to_s.to_i
+    
+    if piece.get_color == "white" && piece.get_row == 2
+      return true if target_row == 4
+    elsif piece.get_color == "black" && piece.get_row == 7
+      return true if target_row == 5
+    end
+    false
+  end
+  
+  def set_en_passant(piece, target)
+    set_column = piece.get_column
+    set_row = (piece.get_row + target.match(/\d/).to_s.to_i) / 2
+    set_color = piece.get_color
+    @en_passant = ["#{set_column}#{set_row}", "#{set_color}"]
+  end
+  
+  def pawn_movement(piece, destination, origin, target)
+    if !column_adjacent?(origin, target) && pawn_blocked?(piece, destination)
+      @error_message = "another piece is in the way!"
+      return
+    elsif !pawn_attack_moves(piece, destination, origin, target) && column_adjacent?(origin, target)
+      @error_message = "pawns can only attack diagonally!"
+      return
+    elsif eligible_for_promotion?(piece)
+      promote(piece, origin, target)
+    else
+      set_en_passant(piece, target) if en_passant_eligible?(piece, target)
+      capture(piece, destination, origin, target)
+    end
   end
   
 end
