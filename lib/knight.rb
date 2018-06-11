@@ -4,7 +4,6 @@ class Knight < Piece
   
   def initialize(color)
     @color = color
-    @type = "Knight"
   end
   
   def in_bounds?(move)

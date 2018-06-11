@@ -5,10 +5,12 @@ class Piece
     @moved = nil
   end
   
+  #important for checking if a castle move is possible.
   def mark_as_moved
     @moved = true
   end
   
+  #also for castling.
   def check_if_moved?
     @moved
   end
@@ -29,22 +31,8 @@ class Piece
     @current_square.coords.match(/[a-h]/).to_s
   end
   
-  def get_name
-    "#{@type}, #{@color}"
-  end
-  
-  def get_type
-    @type
-  end
-  
   def get_color
     @color
-  end
-  
-  def check(square)
-    #not sure if this should go in piece or board...
-    row = square.match(/[1-8]/).to_s
-    col = square.match(/[a-h]/).to_s
   end
   
   def in_bounds?(move)

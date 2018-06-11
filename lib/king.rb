@@ -4,7 +4,6 @@ class King < Piece
   
   def initialize(color)
     @color = color
-    @type = "King"
   end
   
   def in_bounds?(move)

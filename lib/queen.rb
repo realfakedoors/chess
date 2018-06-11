@@ -4,7 +4,6 @@ class Queen < Piece
   
   def initialize(color)
     @color = color
-    @type = "Queen"
   end
 
   def possible_moves

@@ -4,7 +4,6 @@ class Rook < Piece
   
   def initialize(color)
     @color = color
-    @type = "Rook"
   end
 
   def possible_moves

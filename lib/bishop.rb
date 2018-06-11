@@ -4,7 +4,6 @@ class Bishop < Piece
   
   def initialize(color)
     @color = color
-    @type = "Bishop"
   end
 
   def possible_moves

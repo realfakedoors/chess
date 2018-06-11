@@ -4,7 +4,6 @@ class Pawn < Piece
   
   def initialize(color)
     @color = color
-    @type = "Pawn"
   end
   
   def possible_moves
@@ -15,6 +14,7 @@ class Pawn < Piece
     column = self.get_column.ord
     row = self.get_row
     
+    #makes a two-square advance possible if a pawn is on its starting square.
     if @color == "white"
       white_paths << [0,2] if row == 2
       possible_paths = white_paths
@@ -27,23 +27,6 @@ class Pawn < Piece
     
     actual_paths.each{|col, row| moves << "#{col.chr}#{row}"}
     
-#    if @color == "white"
-#      (column.ord..column.ord + 2).each do |col|
-#        col -= 1
-#        moves << "#{col.chr}#{(row + 1)}"
-#      end
-#      if row == 2
-#        moves << "#{column}#{(row + 2)}"
-#      end
-#    elsif @color == "black"
-#      (column.ord..column.ord + 2).each do |col|
-#        col -= 1
-#        moves << "#{col.chr}#{(row - 1)}"
-#      end
-#      if row == 7
-#        moves << "#{column}#{(row - 2)}"
-#      end
-#    end
     moves
   end
   
