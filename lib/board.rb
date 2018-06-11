@@ -1,6 +1,6 @@
 class Board
   
-  def initialize(white, black, board = self.empty_board)
+  def initialize(white, black, board = self.empty_board, current_player = "white")
     @board = board
     
     @white_player = [white, "white"]
@@ -9,7 +9,11 @@ class Board
     @black_player = [black, "black"]
     @black_graveyard = []
     
-    @current_player = @white_player
+    if current_player == "white"
+      @current_player = @white_player
+    else
+      @current_player = @black_player
+    end
     
     @en_passant = nil
 
@@ -32,6 +36,10 @@ class Board
   
   def get_board
     @board
+  end
+  
+  def get_player_names
+    [@white_player[0], @black_player[0]]
   end
   
   def access(square)
@@ -348,10 +356,8 @@ class Board
   def non_pawn_movement(piece, destination, origin, target)
     if destination != nil && piece.get_color != destination.get_color
       capture(piece, destination, origin, target)
-#      switch_players
     elsif destination == nil
       change_squares(piece, origin, target)
-#      switch_players
     else      
       @error_message = "there's a friendly piece on that spot!"      
     end
@@ -467,7 +473,6 @@ class Board
       self.set_piece(coords, contents)
     end
     
-#    switch_players
     @error_message = "You can't put your own king in danger!"
   end
   
