@@ -5,14 +5,9 @@ class King < Piece
   def initialize(color)
     @color = color
   end
-  
-  def in_bounds?(move)
-    (97..104).include?(move.first) && (1..8).include?(move.last)
-  end
 
   def possible_moves
     moves = []
-    
     possible_paths = [[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0]]
     
     column = self.get_column.ord

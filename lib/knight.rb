@@ -6,10 +6,6 @@ class Knight < Piece
     @color = color
   end
   
-  def in_bounds?(move)
-    (97..104).include?(move.first) && (1..8).include?(move.last)
-  end
-  
   def possible_moves
     moves = []
     possible_paths = [[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]]

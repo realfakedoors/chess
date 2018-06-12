@@ -1,18 +1,15 @@
 class Piece
   
+  attr_accessor :moved, :color
+  
   def initialize
     @current_square = nil
     @moved = nil
   end
   
-  #important for checking if a castle move is possible.
+  #important for checking if a castle move is possible for Kings/Rooks.
   def mark_as_moved
     @moved = true
-  end
-  
-  #also for castling.
-  def check_if_moved?
-    @moved
   end
   
   def set_current_square(square)
@@ -31,16 +28,12 @@ class Piece
     @current_square.coords.match(/[a-h]/).to_s
   end
   
-  def get_color
-    @color
-  end
-  
   def in_bounds?(move)
     (97..104).include?(move.first) && (1..8).include?(move.last)
   end
   
   def legal_move?(destination)
-    if self.possible_moves.any? {|poss| poss == destination}
+    if possible_moves.any? {|poss| poss == destination}
       true
     end
   end

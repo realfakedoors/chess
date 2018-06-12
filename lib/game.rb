@@ -47,7 +47,7 @@ class Game
   end
   
   def save_game
-    board_state = @board.get_board
+    board_state = @board.board
     player_names = @board.get_player_names
     #already a method in game.rb for current_player.
     datetime = DateTime.now
@@ -126,8 +126,7 @@ class Game
   end
   
   def chess_ascii
-    "
-                                                                   
+    "                                                                
   ,ad8888ba,   88        88  88888888888  ad88888ba    ad88888ba   
  d8\"'    `\"8b  88        88  88          d8\"     \"8b  d8\"     \"8b  
 d8'            88        88  88          Y8,          Y8,          
@@ -136,9 +135,7 @@ d8'            88        88  88          Y8,          Y8,
 Y8,            88        88  88                  `8b          `8b  
  Y8a.    .a8P  88        88  88          Y8a     a8P  Y8a     a8P  
   `\"Y8888Y\"'   88        88  88888888888  \"Y88888P\"    \"Y88888P\"
-
   "
-
   end
     
   def options_menu
