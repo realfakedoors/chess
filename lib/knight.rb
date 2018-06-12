@@ -6,6 +6,8 @@ class Knight < Piece
     @color = color
   end
   
+  public
+  
   def possible_moves
     moves = []
     possible_paths = [[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]]

@@ -1,14 +1,14 @@
 class Square
   
+  attr_accessor :contents, :column, :row
+  
   def initialize(col, row)
     @column = col
     @row = row
     @contents = nil
   end
   
-  def contents
-    @contents
-  end
+  public
   
   def set_contents(contents)
     @contents = contents
@@ -16,14 +16,6 @@ class Square
   
   def coords
     "#{@column}#{@row}"
-  end
-  
-  def column
-    @column
-  end
-  
-  def row
-    @row
   end
   
 end

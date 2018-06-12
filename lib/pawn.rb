@@ -6,6 +6,8 @@ class Pawn < Piece
     @color = color
   end
   
+  public
+  
   def possible_moves
     moves = []
     white_paths = [[1,1],[0,1],[-1,1]]

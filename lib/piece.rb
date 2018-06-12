@@ -7,6 +7,8 @@ class Piece
     @moved = nil
   end
   
+  public
+  
   #important for checking if a castle move is possible for Kings/Rooks.
   def mark_as_moved
     @moved = true
@@ -28,17 +30,17 @@ class Piece
     @current_square.coords.match(/[a-h]/).to_s
   end
   
-  def in_bounds?(move)
-    (97..104).include?(move.first) && (1..8).include?(move.last)
-  end
-  
   def legal_move?(destination)
     if possible_moves.any? {|poss| poss == destination}
       true
     end
   end
   
-  ######################################################
+  private
+  
+  def in_bounds?(move)
+    (97..104).include?(move.first) && (1..8).include?(move.last)
+  end
   
   def get_right_diags(column, row)
     opposite_row = row
@@ -98,7 +100,5 @@ class Piece
 
     horizontals
   end
-  
-  ######################################################
   
 end

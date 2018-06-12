@@ -4,6 +4,8 @@ class Game
   require 'date'
   require 'io/console'
   
+  public
+  
   def play    
     welcome_screen
     until game_over?
@@ -11,6 +13,8 @@ class Game
     end
     game_over_screen
   end
+  
+  private
   
   def game_over?
     return true if @board.stalemate? || @board.checkmate?

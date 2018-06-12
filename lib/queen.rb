@@ -5,6 +5,8 @@ class Queen < Piece
   def initialize(color)
     @color = color
   end
+  
+  public
 
   def possible_moves
     moves = []

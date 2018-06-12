@@ -27,6 +27,16 @@ class Board
     @check_message = ""
   end
   
+  public
+  
+  def checkmate?
+    true if king_in_check? && !legal_moves_possible?
+  end
+  
+  def stalemate?
+    true if !king_in_check? && !legal_moves_possible?
+  end
+  
   def empty_board
     #creates 64 squares, places them on the board, and letters/numbers them accordingly.
     board = []
@@ -41,9 +51,150 @@ class Board
     board
   end
   
+  def set_piece(square, piece = nil)
+    square = access(square)
+    square.set_contents(piece)
+    if !piece.nil?
+      piece.set_current_square(square)
+    end
+  end
+  
+  def change_squares(piece, origin, target)
+    piece.set_current_square(target)
+    if piece.is_a?(King) || piece.is_a?(Rook)
+      piece.mark_as_moved
+    end
+    set_piece(target, piece)
+    #sets original square to nil after piece is moved.
+    set_piece(origin, nil)
+  end
+  
+  def new_board  
+    "a".upto("h").each do |col|
+      set_piece("#{col}7", Pawn.new("black"))
+      set_piece("#{col}2", Pawn.new("white"))
+    end
+
+    set_piece("a1", Rook.new("white"))
+    set_piece("h1", Rook.new("white"))
+    set_piece("a8", Rook.new("black"))
+    set_piece("h8", Rook.new("black"))
+    
+    set_piece("b1", Knight.new("white"))
+    set_piece("g1", Knight.new("white"))
+    set_piece("b8", Knight.new("black"))
+    set_piece("g8", Knight.new("black"))
+    
+    set_piece("c1", Bishop.new("white"))
+    set_piece("f1", Bishop.new("white"))
+    set_piece("c8", Bishop.new("black"))
+    set_piece("f8", Bishop.new("black"))
+    
+    set_piece("d1", Queen.new("white"))
+    set_piece("d8", Queen.new("black"))
+    
+    set_piece("e1", King.new("white"))
+    set_piece("e8", King.new("black"))
+  end
+  
   def get_player_names
     [@white_player[0], @black_player[0]]
   end
+  
+  def display
+    system "clear"
+    puts ""    
+    puts "    -------------------------------    "
+    @board.each_with_index do |row, i|
+      i = (i - 8).abs
+      print " #{i} "
+      row.each {|square| print "| #{square.contents.display || " "} "}
+      puts "|"
+      puts "    -------------------------------    "
+    end
+    puts "     a   b   c   d   e   f   g   h     "
+    puts ""    
+    show_player_names
+    show_error_messages
+    puts "It's #{current_player[0]}'s turn!"
+    puts "Enter your next move, or 'menu' for options!"
+    puts ""
+  end
+  
+  def switch_players
+    @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
+    #resets the error message, since we only switch players if a turn is legal.
+    @error_message = nil
+  end
+  
+  def king_in_check?
+    friendly_pieces = []
+    hostile_pieces = []
+    
+    @board.flatten.select{|sq| !sq.contents.nil?}.each do |sq| 
+      sq.contents.color == @current_player[1] ? friendly_pieces << sq.contents : hostile_pieces << sq.contents
+    end
+    
+    friendly_king = friendly_pieces.select{|pc| pc.is_a?(King)}.first
+    
+    hostiles_threatening_king = hostile_pieces.select do |pc|
+      pc.possible_moves.any? do |move|
+        if pc.is_a?(Pawn)
+          pawn_attack_moves?(pc, friendly_king, pc.get_current_square, friendly_king.get_current_square)
+        else
+          move == friendly_king.get_current_square && not_blocked?(pc, pc.get_current_square, friendly_king.get_current_square)
+        end
+      end
+    end
+    if hostiles_threatening_king.any?{|pc| !pc.nil?}
+      @check_message = "Check!"
+      return true 
+    else 
+      return false
+    end
+  end
+  
+  def move(origin, target)
+    
+    piece = access(origin).contents
+    destination = access(target).contents
+    
+    if piece == nil      
+      @error_message = "there's no piece on that square!"
+    elsif piece.color != @current_player[1]
+      @error_message = "wrong color! it's not your turn!"
+    elsif !piece.legal_move?(target)    
+      @error_message = "not a legal move!"
+    elsif !destination.nil? && piece.color == destination.color
+      @error_message = "no friendly fire!"
+    elsif piece.is_a?(Pawn)
+      pawn_movement(piece, destination, origin, target)
+    elsif not_blocked?(piece, origin, target)
+      record_board_state
+      non_pawn_movement(piece, destination, origin, target)
+      king_threatened?
+    else
+      @error_message = "you're blocked by another piece!"
+    end
+  end
+  
+  def castle(color, direction)
+    if castle_eligible?(color, direction)
+      if king_in_check?
+        @error_message = "you can't castle out of check!"
+        return
+      else
+        record_board_state
+        castle_move(color, direction)
+        king_threatened?
+      end
+    else
+      @error_message = "you can't castle that way!"
+      return
+    end
+  end
+  
+  private
   
   def access(square)
     #takes a string with a letter and number as input, and returns the corresponding square.
@@ -52,14 +203,6 @@ class Board
     row -= 9
     row = row.abs.to_s
     @board[row.to_i - 1][column.ord - 97]
-  end
-  
-  def checkmate?
-    true if king_in_check? && !legal_moves_possible?
-  end
-  
-  def stalemate?
-    true if !king_in_check? && !legal_moves_possible?
   end
   
   def legal_moves_possible?
@@ -90,50 +233,6 @@ class Board
   def show_error_messages
     puts @error_message
     puts @check_message
-  end
-  
-  def display
-    system "clear"
-    puts ""    
-    puts "    -------------------------------    "
-    @board.each_with_index do |row, i|
-      i = (i - 8).abs
-      print " #{i} "
-      row.each {|square| print "| #{square.contents.display || " "} "}
-      puts "|"
-      puts "    -------------------------------    "
-    end
-    puts "     a   b   c   d   e   f   g   h     "
-    puts ""    
-    show_player_names
-    show_error_messages
-    puts "It's #{current_player[0]}'s turn!"
-    puts "Enter your next move, or 'menu' for options!"
-    puts ""
-  end
-  
-  def switch_players
-    @current_player == @white_player ? @current_player = @black_player : @current_player = @white_player
-    #resets the error message, since we only switch players if a turn is legal.
-    @error_message = nil
-  end
-  
-  def set_piece(square, piece = nil)
-    square = access(square)
-    square.set_contents(piece)
-    if !piece.nil?
-      piece.set_current_square(square)
-    end
-  end
-  
-  def change_squares(piece, origin, target)
-    piece.set_current_square(target)
-    if piece.is_a?(King) || piece.is_a?(Rook)
-      piece.mark_as_moved
-    end
-    set_piece(target, piece)
-    #sets original square to nil after piece is moved.
-    set_piece(origin, nil)
   end
   
   def castle_eligible?(color, direction)
@@ -169,22 +268,6 @@ class Board
       set_piece("h#{row}", nil)
       set_piece("g#{row}", King.new(color))
       set_piece("f#{row}", Rook.new(color))
-    end
-  end
-  
-  def castle(color, direction)
-    if castle_eligible?(color, direction)
-      if king_in_check?
-        @error_message = "you can't castle out of check!"
-        return
-      else
-        record_board_state
-        castle_move(color, direction)
-        king_threatened?
-      end
-    else
-      @error_message = "you can't castle that way!"
-      return
     end
   end
   
@@ -300,85 +383,6 @@ class Board
       change_squares(piece, origin, target)
     else      
       @error_message = "there's a friendly piece on that spot!"      
-    end
-  end
-  
-  def move(origin, target)
-    
-    piece = access(origin).contents
-    destination = access(target).contents
-    
-    if piece == nil      
-      @error_message = "there's no piece on that square!"
-    elsif piece.color != @current_player[1]
-      @error_message = "wrong color! it's not your turn!"
-    elsif !piece.legal_move?(target)    
-      @error_message = "not a legal move!"
-    elsif !destination.nil? && piece.color == destination.color
-      @error_message = "no friendly fire!"
-    elsif piece.is_a?(Pawn)
-      pawn_movement(piece, destination, origin, target)
-    elsif not_blocked?(piece, origin, target)
-      record_board_state
-      non_pawn_movement(piece, destination, origin, target)
-      king_threatened?
-    else
-      @error_message = "you're blocked by another piece!"
-    end
-  end
-  
-  def new_board  
-    "a".upto("h").each do |col|
-      set_piece("#{col}7", Pawn.new("black"))
-      set_piece("#{col}2", Pawn.new("white"))
-    end
-
-    set_piece("a1", Rook.new("white"))
-    set_piece("h1", Rook.new("white"))
-    set_piece("a8", Rook.new("black"))
-    set_piece("h8", Rook.new("black"))
-    
-    set_piece("b1", Knight.new("white"))
-    set_piece("g1", Knight.new("white"))
-    set_piece("b8", Knight.new("black"))
-    set_piece("g8", Knight.new("black"))
-    
-    set_piece("c1", Bishop.new("white"))
-    set_piece("f1", Bishop.new("white"))
-    set_piece("c8", Bishop.new("black"))
-    set_piece("f8", Bishop.new("black"))
-    
-    set_piece("d1", Queen.new("white"))
-    set_piece("d8", Queen.new("black"))
-    
-    set_piece("e1", King.new("white"))
-    set_piece("e8", King.new("black"))
-  end
-  
-  def king_in_check?
-    friendly_pieces = []
-    hostile_pieces = []
-    
-    @board.flatten.select{|sq| !sq.contents.nil?}.each do |sq| 
-      sq.contents.color == @current_player[1] ? friendly_pieces << sq.contents : hostile_pieces << sq.contents
-    end
-    
-    friendly_king = friendly_pieces.select{|pc| pc.is_a?(King)}.first
-    
-    hostiles_threatening_king = hostile_pieces.select do |pc|
-      pc.possible_moves.any? do |move|
-        if pc.is_a?(Pawn)
-          pawn_attack_moves?(pc, friendly_king, pc.get_current_square, friendly_king.get_current_square)
-        else
-          move == friendly_king.get_current_square && not_blocked?(pc, pc.get_current_square, friendly_king.get_current_square)
-        end
-      end
-    end
-    if hostiles_threatening_king.any?{|pc| !pc.nil?}
-      @check_message = "Check!"
-      return true 
-    else 
-      return false
     end
   end
   
