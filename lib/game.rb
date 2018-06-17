@@ -6,7 +6,7 @@ class Game
   
   public
   
-  def play    
+  def play
     welcome_screen
     until game_over?
       interact_with_board

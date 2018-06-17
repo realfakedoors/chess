@@ -1,6 +1,6 @@
 class Piece
   
-  attr_accessor :moved, :color
+  attr_accessor :moved, :color, :current_square
   
   def initialize
     @current_square = nil

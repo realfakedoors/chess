@@ -1,6 +1,6 @@
 class Board
   
-  attr_accessor :current_player, :board
+  attr_accessor :current_player, :board, :error_message, :en_passant
   
   def initialize(white, black, board = self.empty_board, current_player = "white")
     @board = board
@@ -69,7 +69,7 @@ class Board
     set_piece(origin, nil)
   end
   
-  def new_board  
+  def new_board
     "a".upto("h").each do |col|
       set_piece("#{col}7", Pawn.new("black"))
       set_piece("#{col}2", Pawn.new("white"))
@@ -194,8 +194,6 @@ class Board
     end
   end
   
-  private
-  
   def access(square)
     #takes a string with a letter and number as input, and returns the corresponding square.
     column = square.match(/[a-h]/).to_s
@@ -205,8 +203,10 @@ class Board
     @board[row.to_i - 1][column.ord - 97]
   end
   
+  private
+  
   def legal_moves_possible?
-    true if !find_legal_moves.first.nil?
+    true unless find_legal_moves.first.nil?
   end
   
   def print_white_graveyard
@@ -471,13 +471,11 @@ class Board
         fresh_board.empty_board
         set_from_previous(fresh_board)      
         fresh_board.change_squares(piece, this_square, potential_move)
-        fresh_board.switch_players        
         if !fresh_board.king_in_check?
           legal_moves << potential_move
         else
           fresh_board.change_squares(piece, potential_move, this_square)
         end
-        fresh_board.switch_players
       end
     end
     set_from_previous(fresh_board)
@@ -497,7 +495,7 @@ class Board
     end
   end
   
-  def en_passant(piece, target) 
+  def move_en_passant(piece, target) 
     if piece.color == "white"
       enemy_square = access("#{target.column}#{target.row.to_i - 1}")
       @white_graveyard << enemy_square.contents.display
@@ -514,7 +512,7 @@ class Board
     target = access(target)
     if @en_passant != nil
       if @en_passant[0] == target.coords && @en_passant[1] != piece.color
-        en_passant(piece, target)
+        move_en_passant(piece, target)
         true
       end
     elsif destination == nil

@@ -18,11 +18,12 @@ describe Pawn do
       expect(test_black_pawn.possible_moves).to include("h5")
     end
     
-    context "if a pawn is in its starting row"
+    context "if a pawn is in its starting row" do
       it "returns two squares ahead" do
         expect(test_white_pawn.possible_moves).to include("b4")
         expect(test_black_pawn.possible_moves).not_to include("h4")
       end
+    end
     
     it "returns diagonal forward squares" do
       expect(test_white_pawn.possible_moves).to include("a3", "c3")
